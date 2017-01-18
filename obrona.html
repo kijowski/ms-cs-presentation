@@ -1,0 +1,528 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Implementacja systemu służącego do zadawania zapytań w postaci grafów pojęć</title>
+    <meta name="description" content="Introduction to FsReveal">
+    <meta name="author" content="Michał Kijowski">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="//code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="//code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css" id="theme">
+    <link type="text/css" rel="stylesheet" href="fsharp.formatting/styles/style.css" />
+    <link type="text/css" rel="stylesheet" href="fsharp.formatting/styles/deedle.css" />
+    <link type="text/css" rel="stylesheet" href="css/custom.css" />
+    <script src="fsharp.formatting/styles/tips.js" type="text/javascript"></script>
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+    <link rel="stylesheet" href="css/fsreveal.css">
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+    </script>
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+    <script language="javascript" type="text/javascript">
+        function init()
+        {
+            websocket = new WebSocket("ws://"+window.location.host+"/websocket");
+            websocket.onmessage = function(evt) { location.reload(); };
+        }
+        window.addEventListener("load", init, false);
+    </script>
+</head>
+<body>
+    <div class="reveal">
+        <div class="tip" id="fs1">namespace Microsoft.FSharp.Core</div>
+
+        <!-- Any section element inside of this container is displayed as a slide -->
+        <div class="slides">
+            <section >
+<h4>Implementacja systemu służącego do zadawania zapytań w postaci grafów pojęć</h4>
+</section>
+<section >
+<section >
+<h3>Motywacja i zagadnienia badawcze</h3>
+<aside class="notes">
+Głównym celem mojej pracy magisterskiej jest utworzenie programu umożliwiającego zadawanie zapytań do relacyjnych baz danych w postaci grafów konceptualnych.<br/>
+W ramach pracy sformułowałem dwa główne zagadnienia badawcze:<br/>
+</aside>
+</section>
+<section >
+<p>Modelowanie wiedzy zawartej w relacyjnej bazie danych przy pomocy grafów konceptualnych</p>
+</section>
+<section >
+<p>Zadawanie zapytań do relacyjnej bazy danych przy użyciu tak powstałego modelu konceptualnego</p>
+</section>
+</section>
+<section >
+<section >
+<h3>Grafy konceptualne</h3>
+<aside class="notes">
+Wprowadzając pojęcie grafu konceptualnego dobrze jest posłużyć się przykładem<br/>
+</aside>
+</section>
+<section >
+<p><img src="images/chapter2_cg_example.jpg" alt="CG" /></p>
+<p>Klasyczny przykład grafu konceptualnego reprezentujący wiedzę zawartą w zdaniu <em>John is going to Boston by bus</em>.
+<aside class="notes">
+Graf konceptualny w postaci wizualnej (<em>Display form</em>)<br/>
+</aside></p>
+</section>
+<section >
+<h4>Podstawowe fakty dotyczące grafów konceptualnych</h4>
+<ul>
+<li><div class="fragment">Modelowanie wiedzy o świecie</div></li>
+<li><div class="fragment">Obserwacja świata oparta na dostrzeganiu faktów dotyczących istnienia obiektów</div></li>
+<li>
+<div class="fragment"> Graf konceptualny składa się z wierzchołków dwóch rodzajów:</div>
+<ul>
+<li><div class="fragment"><strong>Konceptów</strong>, czyli  wierzchołków opisujących byty</div></li>
+<li><div class="fragment"><strong>Relacji</strong>, czyli wierzchołków opisujących zależności pomiędzy bytami</div></li>
+</ul>
+</li>
+</ul>
+<aside class="notes">
+Dokonując emp. obserwacji niemożliwe jest dostrzeżenie nieistnienia, alternatywy lub stwierdzenia, iż coś jest we wszystkich przyp. <br/>
+Wynika z tego, że u ich podstawy stoją kwant. egzystencjalny oraz op. koniunkcji. <br/>
+Każda relacja jest połączona krawędziami skierowanymi z wierzchołkami konceptualnymi wchodzącymi w skład danej relacji.<br/>
+Koncepty oraz relacje nazywane są wspólnie pojęciami.<br/>
+Z technicznego punktu widzenia CG jest grafem dwudzielnym skierowanym<br/>
+</aside>
+</section>
+<section >
+<p><img src="images/chapter2_cg_example.jpg" alt="CG" /></p>
+<aside class="notes">
+konkretnych byt typu Osoba o id John oraz bytu typu Miasto o id Boston<br/>
+niesprecyzowanych bytów typu Autobus oraz typu Iść<br/>
+relacja mówiąca o tym, że John jest Wykonawcą konceptu Iść<br/>
+relacja mówiąca o tym, że Autobus jest Narzędziem konceptu Iść<br/>
+relacja mówiąca o tym, że Boston jest Celem konceptu Iść<br/>
+</aside>
+</section>
+<section >
+<h3>CGIF</h3>
+<p>Formatem najczęsciej używanym do komunikacji pomiędzy programami wykorzystującymi grafy konceptualne jest format o nazwie <strong>Conceptual Graph Interchange Format</strong>.</p>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+<span class="l">5: </span>
+<span class="l">6: </span>
+<span class="l">7: </span>
+<span class="l">8: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="i">Core</span> <span class="i">CGIF</span><span class="o">:</span>
+[<span class="o">*</span><span class="i">x</span>] [<span class="o">*</span><span class="i">y</span>]
+(<span class="i">Go</span> <span class="o">?</span><span class="i">x</span>) (<span class="i">Person</span> <span class="i">John</span>) (<span class="i">City</span> <span class="i">Boston</span>) (<span class="i">Bus</span> <span class="o">?</span><span class="i">y</span>)
+(<span class="i">Agnt</span> <span class="o">?</span><span class="i">x</span> <span class="i">John</span>) (<span class="i">Dest</span> <span class="o">?</span><span class="i">x</span> <span class="i">Boston</span>) (<span class="i">Inst</span> <span class="o">?</span><span class="i">x</span> <span class="o">?</span><span class="i">y</span>)
+
+<span class="i">Extended</span> <span class="i">CGIF</span><span class="o">:</span>
+[<span class="i">Go</span><span class="o">:</span> <span class="o">*</span><span class="i">x</span>] [<span class="i">Person</span><span class="o">:</span> <span class="i">John</span> <span class="o">*</span><span class="i">y</span>] [<span class="i">City</span><span class="o">:</span> <span class="i">Boston</span> <span class="o">*</span><span class="i">z</span>] [<span class="i">Bus</span><span class="o">:</span> <span class="o">*</span><span class="i">w</span>]
+(<span class="i">Agnt</span> <span class="o">?</span><span class="i">x</span> <span class="o">?</span><span class="i">y</span>) (<span class="i">Dest</span> <span class="o">?</span><span class="i">x</span> <span class="o">?</span><span class="i">z</span>) (<span class="i">Inst</span> <span class="o">?</span><span class="i">x</span> <span class="o">?</span><span class="i">z</span>)
+</code></pre></td>
+</tr>
+</table>
+<aside class="notes">
+Przydatną cechą grafów konceptualnych jest mnogość sposobów ich zapisu.<br/>
+_Postać graficzna_ jest formatem najbardziej przyjaznym dla czytelnika. Jednakże, istnieje również kilka zapisów liniowych, które są dużo przyjaźniejsze dla programów komputerowych pracujących z grafami.<br/>
+W ramach formatu CGIF koncepty ujętę są w nawiasy kwadratowe, natomiast relacje - zwykłe nawiasy. Symbole postaci \*x nazywane są etykietami definiującymi, natomiast symbole postaci ?y - etykietami związanymi. Dzięki temu możliwa jest łatwa prezentacja krawędzi grafu.<br/>
+</aside>
+</section>
+<section >
+<h3>Semantyka</h3>
+<p>W celu precyzyjnej definicji składni oraz semantyki grafów konceptualnych wprowadza się pojęcie <strong>Modelu grafu konceptualnego</strong>.</p>
+<p>Pozwala on opisać syntaktyczne ograniczenia występujące pomiędzy pojęciami oraz dostarcza informacji na temat dziedziny, którą opisuje rozpatrywany graf.</p>
+</section>
+<section >
+<p>Modelem nazywamy krotkę postaci <span class="math">\(M = ((T_C, \le_C), (T_R, \le_R), I)\)</span> gdzie:</p>
+<ul>
+<li>zbiór <span class="math">\(T_C\)</span> nazywamy zbiorem typów konceptów, a relację częściowego porządku <span class="math">\(\le_C\)</span> - hierarchią konceptów.</li>
+<li>zbiór <span class="math">\(T_R\)</span> nazywamy zbiorem typów relacji, a relację częściowego porządku <span class="math">\(\le_R\)</span> - hierarchią relacji.</li>
+<li>zbiór <span class="math">\(I\)</span> nazywamy zbiorem indywiduów.</li>
+</ul>
+<aside class="notes">
+W celu precyzyjnej definicji składni oraz semantyki grafu konceptualnego wprowadza się pojęcie **modelu** (zwanego czasami **słownikiem** lub **wsparciem**), który pozwala opisać syntaktyczne ograniczenia występujące pomiędzy pojęciami oraz dostarcza informacji na temat dziedziny, którą opisuje rozpatrywany graf.<br/>
+Nadtyp, podtyp, ---typ właściwy<br/>
+typ uniwersalny, typ absurdalny<br/>
+Należy podkreślić, że w ramach relacji częściowego porządku na typach konceptów nie definiujemy relacji równoważności pomiędzy konceptami.<br/>
+Zbiór typów konceptów wraz z hierarchią $(T_C, \le_C)$ jest kratą.<br/>
+Rózna arność relacji<br/>
+Skończony zbiór $I$ składający się ze stałych wyrażeń nazywamy zbiorem indywiduów. Każdy element tego zbioru jest reprezentacją konkretnego obiektu należącego do rozpatrywanego uniwersum. Dodatkowo istnieje element $*$ nazywany indywiduum uniwersalnym. Wówczas zbiór $M=I\cup \{*\}$ jest uporządkowany w sposób następujący: element $*$ jest większy niż każdy z elementów należących do $I$, natomiast każde dwa elementy $x,y\in I$ są nieporównywalne.<br/>
+</aside>
+</section>
+</section>
+<section >
+<section >
+<h3>Model relacyjny</h3>
+</section>
+<section >
+<p>Teoretyczną podstawą modelu relacyjnego jest matematyczna teoria mnogości.</p>
+<p>Podstawowym pojęciem w modelu relacyjnym jest pojęcie <strong>relacji</strong>, za pomocą którego opisujemy zbiór rekordów (obiektów) o identycznej strukturze wewnętrznej. Obiekty te często przedstawia się w postaci tablicy.</p>
+<p>Ustalony zbiór relacji nazywamy <strong>schematem bazy danych</strong>.</p>
+<aside class="notes">
+Model relacyjny jest to model organizacji danych zaprezentowany po raz pierwszy w 1970 roku przez Edgara Frank Codda w pracy pt. _A Relational Model of Data for Large Shared Data Banks_<br/>
+</aside>
+</section>
+<section >
+<p>W modelu relacyjnym każda z relacji (prezentowana w postaci np. tabeli) jest reprezentowana za pomocą trzech parametrów:</p>
+<ul>
+<li><strong>Nazwa</strong> - opisuje danę relację, musi być unikalna w ramach schematu bazy danych.</li>
+<li><strong>Nagłówek</strong> - zbiór artybutów opisujących rekordy wchodzące w skład relacji. Pojedynczy atrybut jest parą składającą się z nazwy oraz typu danego atrybutu.</li>
+<li><strong>Zawartość</strong> - zbiór krotek, gdzie pojedyncza krotka opisuje zależności pomiędzy danymi powiązanymi z poszczególnymi atrybutami.</li>
+</ul>
+</section>
+<section >
+<h3>ALgebra relacyjna</h3>
+<p>Kolejnym ważnym elementem modelu relacyjnego jest zbiór operacji służących do manipulacji oraz przeszukiwania danych. Najczęściej zbiór tych operacji opisuje się przy pomocy <strong>algebry relacyjnej</strong>.</p>
+</section>
+</section>
+<section >
+<section >
+<h3>Analogie pomiędzy grafami konceptualnymi a modelem relacyjnym</h3>
+</section>
+<section >
+<p>Zarówno model relacyjny jak i grafy konceptualne:</p>
+<ul>
+<li><div class="fragment">Mogą być wykorzystywane do modelowania wiedzy o świecie.</div></li>
+<li><div class="fragment">Posiadają podstawowe, niepodzielne jednostki wiedzy.</div></li>
+<li><div class="fragment">Grupują wspomniane jednostki wiedzy poprzez nakładanie warunków na ich strukturę wewnętrzną.</div></li>
+<li><div class="fragment">Umożliwiają wykonywanie szeregu operacji mających na celu manipulacje danymi.</div></li>
+</ul>
+<aside class="notes">
+Przed przystąpieniem do głębszej analizy należy spojrzeć na model relacyjny oraz grafy konceptualne z szerszej perspektywy co pozwoli zaobserwować szereg analogii istniejących pomiędzy nimi.<br/>
+</aside>
+</section>
+</section>
+<section >
+<section >
+<h3>Generowanie modelu grafów konceptualnych ze schematu relacyjnej bazy danych</h3>
+<aside class="notes">
+W ramach niniejszej pracy magisterskiej wprowadziłem szereg pojęć rozszerzających teorię grafów konceptualnych. Pojęcia te są bezpośrednio powiązane z modelem relacyjnym, i umożliwiają one łatwiejszy opis opracowanej przeze mnie metody.<br/>
+</aside>
+</section>
+<section >
+<h4>Typy Konceptualne</h4>
+</section>
+<section >
+<p>Konceptualny Typ Tablicowy</p>
+<p>Konceptualny Nadtyp Tablicowy</p>
+<p>Konceptualny Typ Liczbowy</p>
+<p>Konceptualny Typ Napisowy</p>
+<p>Konceptualny Nadtyp Literałowy</p>
+<aside class="notes">
+Przyjmijmy, że $r$ jest instancją schematu relacji $R=\{A_1,\ldots,A_n\}$. Dodatkowo niech $r$ składa się ze skończonego zbioru krotek oznaczonego przez $k$. <br/>
+Wówczas możemy stworzyć **Konceptualny Typ Tablicowy** $T$ o następujących własnościach:<br/>
+* Typ $T_r$ modeluje ten sam typ obiektów co relacja $r$.<br/>
+* Z typem $T_r$ powiązany jest zbiór indywiduów wyznaczony przez zbiór obiektów $k$ tzn. każdy obiekt z $k$ ma typ $T_r$.<br/>
+**Konceptualnym Nadtypem Tablicowym** nazywamy specjalny typ wchodzący w skład zbioru typów konceptualnych wyekstrahowanych z danej bazy danych, który posiada następujące właściwości:<br/>
+* Dla każdego typu konceptualnego wchodzącego w skład hierarchii konceptów zachodzi następujący warunek - typ konceptualny $T$ jest podtypem Konceptualnego **Nadtypu Tablicowego** wtedy i tylko wtedy, gdy typ $T$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji wchodzącej w skład bazy danych.<br/>
+**Konceptualnym Nadtypem Literałowym** nazywamy specjalny typ $L$ wchodzący w skład zbioru typów konceptualnych wyekstrahowanych z danej bazy danych, który jest nadtypem **Konceptualnego Typu Liczbowego** oraz **Konceptualnego Typu Napisowego**.<br/>
+</aside>
+</section>
+<section >
+<p><img src="images/KonceptHierarchyPlain.png" alt="CG" /></p>
+</section>
+<section >
+<h4>Typy Relacyjne</h4>
+</section>
+<section >
+<p>Relacyjny Typ Kolumnowy</p>
+<p>Relacyjny Nadtyp Kolumnowo-Tablicowy</p>
+<p>Relacyjny Nadtyp Kolumnowy</p>
+<p>Relacyjny Prosty Typ Złączeniowy</p>
+<p>Relacyjny Złożony Typ Złączeniowy</p>
+<aside class="notes">
+<h3>Relacyjny Typ Kolumnowy<br/></h3>
+<p>Przyjmijmy, że <span class="math">\(r\)</span> jest instancją schematu relacji <span class="math">\(R=\{A_1,\ldots,A_n\}\)</span>. Dodatkowo niech <span class="math">\(r\)</span> składa się ze skończonego zbioru krotek oznaczonego przez <span class="math">\(k\)</span>.<br/>
+Wówczas z relacji <span class="math">\(r\)</span> możemy wyekstrahować zbiór Relacyjnych Typów Kolumnowych <span class="math">\(T_a = \{t_1,\ldots,t_n\}\)</span> o następujących własnościach:<br/>
+</aside></p>
+<aside class="notes">
+* Typ relacyjny $t_i$ modeluje $i$-ty atrybut relacji $r$.<br/>
+* Typ relacyjny $t_i$ posiada sygnaturę postaci $t_i(K_r,L_i)$ gdzie $K_r$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r$, natomiast $L_i$ jest wyróżnionym typem literałowym  wyznaczonym przez domenę atrybutu $A_i$.<br/>
+</aside>
+<aside class="notes">
+<h3>Relacyjny Nadtyp Kolumnowo-Tablicowy<br/></h3>
+<p>Relacyjnym Nadtypem Kolumnowo-Tablicowym powiązanym z relacją <span class="math">\(r\)</span> nazywamy specjalny typ relacyjny <span class="math">\(RNK_r\)</span> o sygnaturze <span class="math">\(RNK_r(K_r,L)\)</span> o następujących własnościach:<br/>
+</aside></p>
+<aside class="notes">
+* $K_r$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r$.<br/>
+* $L$ jest Konceptualnym Nadtypem Literałowym.<br/>
+* Każdy Relacyjny Typ Kolumnowy $R_i$ wyekstrahowany z relacji $r$ jest podtypem typu $RNK_r$.<br/>
+</aside>
+<aside class="notes">
+<h3>Relacyjny Nadtyp Kolumnowy<br/></h3>
+<p>Relacyjnym Nadtypem Kolumnowym nazywamy specjalny typ relacyjny <span class="math">\(RNK\)</span> o sygnaturze <span class="math">\(RNK(K,L)\)</span> o następujących własnościach<br/>
+</aside></p>
+<aside class="notes">
+* $K$ jest Konceptualnym Nadtypem Tablicowym.<br/>
+* $L$ jest Konceptualnym Nadtypem Literałowym.<br/>
+* Każdy Relacyjny Nadtyp Kolumnowo-Tablicowy $RNK_r$ jest podtypem typu $RNK_r$.<br/>
+</aside>
+<aside class="notes">
+<h3>Relacyjny Prosty Typ Złączeniowy<br/></h3>
+<p>Przyjmijmy, że <span class="math">\(r\)</span> jest instancją schematu relacji <span class="math">\(R=\{A_1,\ldots,A_n\}\)</span> oraz <span class="math">\(s\)</span> jest instancją schematu relacji <span class="math">\(S=\{B_1,\ldots,B_m\}\)</span>. Dodatkowo niech <span class="math">\(fk=(C_1,\ldots,C_i)\)</span> będzie kluczem obcym łączącym <span class="math">\(R\)</span> oraz <span class="math">\(S\)</span> tzn. <span class="math">\(\forall_{j:1\leq j \leq i} \exists_{l:1\leq l\leq n} A_l=C_j\)</span> oraz <span class="math">\(\forall_{j: 1\leq j \leq i} \exists_{l: 1\leq l\leq m} B_l=C_j\)</span>.<br/>
+Wówczas Relacyjnym Prostym Typem Złączeniowym <span class="math">\(T\)</span> nazywamy typ relacyjny o następujących własnościach:<br/>
+</aside></p>
+<aside class="notes">
+Typ relacyjny $T$ modeluje obiekty należące do $r$ oraz $s$ będące w relacji $fk$.<br/>
+</aside>
+<aside class="notes">
+Typ relacyjny $T$ posiada sygnaturę postaci $T(K_r,K_s)$ gdzie $K_r$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r$, natomiast $K_s$ jest konceptualnym typem tablicowym wyekstrahowanym z relacji $s$.<br/>
+</aside>
+<aside class="notes">
+<h3>Relacyjny Złożony Typ Złączeniowy<br/></h3>
+</aside>
+<aside class="notes">
+Przyjmijmy, że $R=\{r_1\ldots r_i\}$ jest zbiorem instancji schematów relacji $T_R=\{R_1\ldots R_i\}$, oraz $FK=\{fk_1\ldots fk_{i-1}\}$ jest zbiorem relacyjnych typów złączeniowych gdzie $\forall k fk_k=(r_k, r_{k+1})$, czyli $fk_k$ odpowiada złączeniu relacji $r_k$ oraz $r_{k+1}$.<br/>
+</aside>
+<aside class="notes">
+Możemy wówczas wyróżnić zbiór $X=\{x_1,\ldots,x_i\}$ gdzie $x_j$ jest przecięciem obiektów należących do $r_j$ będących jednocześnie w relacji $fk_j$ oraz $fk_{j+1}$.<br/>
+</aside>
+<aside class="notes">
+Wówczas dla każdego podziału ciągu $(1,\ldots,i)$ na trzy podciągi $(1,\ldots,a),(a+1,\ldots,b),(b+1,\ldots,i)$, takiego że $1\leq a\leq b\leq i-1$ możemy zdefiniować Złożony Typ Złączeniowy $Z$ o następujących własnościach:<br/>
+</aside>
+<aside class="notes">
+Typ relacyjny $Z$ modeluje obiekty należące do $\{x_1,\ldots,x_a,x_{b+1},\ldots,x_i\}$.<br/>
+</aside>
+<aside class="notes">
+Typ relacyjny $Z$ posiada sygnaturę postaci $T(K_1,\ldots,K_a,K_{b+1},\ldots,K_i)$ gdzie $K_i$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r_i$<br/>
+</aside>
+<aside class="notes">
+Z typem relacyjnym $Z$ związany jest zbiór argumentów ukrytych postaci $(K_{a+1},\ldots,K_{b})$ gdzie $K_i$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r_i$<br/>
+</aside>
+</section>
+<section >
+<p><img src="images/RelationHierarchyPlain.png" alt="CG" /></p>
+</section>
+<section >
+<h3>Opis algorytmu</h3>
+<p>Niech <span class="math">\(r\)</span> będzie bazą danych o schemacie <span class="math">\(\mathbb{R}=(R_1,\ldots,R_n)\)</span> gdzie <span class="math">\(R_i\)</span> jest schematem <span class="math">\(i\)</span>-tej relacji. Wówczas algorytm tłumaczący schemat <span class="math">\(\mathbb{R}\)</span> na model grafu konceptualnego składa się z następujących kroków:</p>
+<aside class="notes">
+Inicjalizowane są puste zbiory $C$, $R$ oraz $I$, gdzie $C$ jest zbiorem typów konceptualnych, $R$ jest zbiorem typów relacyjnych, natomiast $I$ jest zbiorem indywiduów.<br/>
+</aside>
+</section>
+<section >
+<p>Dla każdej relacji <span class="math">\(r_i\in r\)</span> o schemacie <span class="math">\(R_i(A_1,\ldots,A_k)\)</span>:</p>
+<ul>
+<li>Do zbioru <span class="math">\(C\)</span> dodawany jest Konceptualny Typ Tablicowy utworzony z <span class="math">\(R_i\)</span> zgodnie z definicją.</li>
+<li>Do zbioru <span class="math">\(I\)</span> dodawane są obiekty powstałe z kluczy głównych krotek z <span class="math">\(r_i\)</span>.</li>
+<li>
+Dla każdego atrybutu <span class="math">\(A_j, j\in 1,\ldots,k\)</span>:
+<ul>
+<li>Do zbioru <span class="math">\(R\)</span> dodawany jest Relacyjny Typ Kolumnowy utworzony z <span class="math">\(R_i\)</span> oraz <span class="math">\(A_j\)</span> zgodnie z definicją.</li>
+</ul>
+</li>
+<li>
+Dla każdego klucza obcego <span class="math">\(fk\)</span> zdefiniowanego w ramach <span class="math">\(R_i\)</span>:
+<ul>
+<li>Do zbioru <span class="math">\(R\)</span> dodawany jest Relacyjny Prosty Typ Złączeniowy utworzony z <span class="math">\(R_i\)</span> oraz tabeli wskazanej przez <span class="math">\(fk\)</span>.</li>
+</ul>
+</li>
+</ul>
+</section>
+<section >
+<p>Tworzony jest graf <span class="math">\(G=(V,E)\)</span> gdzie <span class="math">\(V\)</span> jest zbiorem wierzchołków odpowiadających Konceptualnym Typom Tablicowym należącym do <span class="math">\(C\)</span>, natomiast <span class="math">\(E\)</span> jest zbiorem krawędzi odpowiadających Relacyjnym Prostym Typom Złączeniowym należącym do <span class="math">\(R\)</span>.</p>
+</section>
+<section >
+<p>Dla każdej pary wierzchołków <span class="math">\(v_i,v_j\in V\)</span>:</p>
+<ul>
+<li>Tworzony jest zbiór <span class="math">\(P=(p_1,\ldots,p_m)\)</span> złożony ze wszystkich ścieżek pomiędzy <span class="math">\(v_i\)</span> oraz <span class="math">\(v_j\)</span> w grafie <span class="math">\(G\)</span>.</li>
+<li>Dla każdej ścieżki <span class="math">\(p_i\)</span> tworzony jest zbiór Relacyjnych Złożonych Typów Złączeniowych zgodnie z definicją.</li>
+<li>Do zbioru <span class="math">\(R\)</span> dodawane są typy uzyskane w poprzednim kroku.</li>
+</ul>
+<aside class="notes">
+Zbiory $C$ oraz $R$ uzupełniane są typami literałowymi oraz  nadtypami konceptualnymi opisanymi w ramach niniejszej pracy, jednocześnie budując relacje częściowego porządku $\leq_C$ oraz $\leq_R$ na tych zbiorach zgodnie z definicjami.<br/>
+Zbiór $I$ uzupełniany jest o klasy odpowiadające literałom.<br/>
+</aside>
+</section>
+<section >
+<p>Zwracany jest model grafu konceptualnego postaci <span class="math">\(M=((C,\leq_C),(R,\leq_R),I)\)</span></p>
+</section>
+</section>
+<section >
+<section >
+<h3>Zadawanie zapytania do relacyjnej bazy danych przy pomocy Konceptualnego grafu zapytania</h3>
+</section>
+<section >
+<p>Przed przystąpieniem do definicji <strong>Konceptualnego Grafu Zapytania</strong> należy zrozumieć, dlaczego normalny graf konceptualny nie jest wystarczający w przypadku zadawania zapytania.</p>
+</section>
+<section >
+<p><img src="images/SimpleGraphQuery.png" alt="CG" /></p>
+</section>
+<section >
+<p><img src="images/ComplexGraphQuery.png" alt="CG" /></p>
+</section>
+<section >
+<h3>Konceptualny Graf Zapytania</h3>
+<p>Konceptualnym Grafem Zapytania nazywamy krotkę postaci <span class="math">\((G,Q)\)</span>, gdzie <span class="math">\(G\)</span> jest grafem konceptualnym, natomiast <span class="math">\(Q\)</span> jest zbiorem złożonym z wyróżnionych wierzchołków konceptualnych oraz relacyjnych należących do <span class="math">\(G\)</span>.</p>
+<aside class="notes">
+<h3>Zbiór wyników<br/></h3>
+<p>Niech <span class="math">\((G,Q)\)</span> będzie Konceptualnym Grafem Zapytania opartym o model <span class="math">\(M=((C,\leq_C),(R,\leq_R),I)\)</span> wyekstrahowanym z relacyjnej bazy danych. Wówczas dla każdego <span class="math">\(q \in Q\)</span> <strong>Zbiorem Wyników</strong> <span class="math">\(R_q\)</span> nazywamy zbiór elementów z <span class="math">\(I\)</span> spełniających jeden z następujących warunków:<br/>
+</aside></p>
+<aside class="notes">
+Jeśli $q$ jest wierzchołkiem konceptualnym o typie $T_q\in C$, to wówczas $R_q$ składa się z obiektów typu $T_q$, które są zgodne z grafem $G$ tzn. spełniają wszystkie relacje opisane przez $G$.<br/>
+</aside>
+<aside class="notes">
+Jeśli $q$ jest wierzchołkiem relacyjnym o typie z sygnaturą $T_q(A_1,\ldots,A_n)\in R$ to wówczas $R_q$ składa się z obiektów typu koniunkcyjnego $T_q=A_1\wedge \ldots \wedge A_n$. Obiekty należące do $R_q$ są zgodne z grafem $G$ tzn. spełniają wszystkie relacje opisane przez $G$.<br/>
+</aside>
+</section>
+<section >
+<p><img src="images/AutorGraphQuery.png" alt="CG" /></p>
+<table>
+<thead>
+<tr class="header">
+<th><p>Imię</p></th>
+<th><p>Nazwisko</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><p>Michał</p></td>
+<td><p>Kijowski</p></td>
+</tr>
+<tr class="even">
+<td><p>Michał</p></td>
+<td><p>Kwiatkowski</p></td>
+</tr>
+</tbody>
+</table>
+
+</section>
+<section >
+<p><img src="images/JoinGraphQuery.png" alt="CG" /></p>
+<table>
+<thead>
+<tr class="header">
+<th><p>Imię</p></th>
+<th><p>Nazwisko</p></th>
+<th><p>Tytuł</p></th>
+<th><p>ISBN</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><p>Michał</p></td>
+<td><p>Kijowski</p></td>
+<td><p>Pierwsza książka</p></td>
+<td><p>1234</p></td>
+</tr>
+<tr class="even">
+<td><p>Michał</p></td>
+<td><p>Kijowski</p></td>
+<td><p>Druga książka</p></td>
+<td><p>5678</p></td>
+</tr>
+<tr class="odd">
+<td><p>Michał</p></td>
+<td><p>Kwiatkowski</p></td>
+<td><p>Pierwsza książka</p></td>
+<td><p>1234</p></td>
+</tr>
+</tbody>
+</table>
+
+</section>
+<section >
+<h3>Opis algorytmu</h3>
+<p>Główna idea algorytmu opiera się na rekurencyjnym zawężaniu zbiorów obiektów zgodnych z danym Konceptualnym Grafem Zapytania.</p>
+<p>Mamy dany model konceptualny <span class="math">\(M=((T_C, \leq_{C}),(T_R, \leq_{R}),I)\)</span> oraz oparty na tym modelu Konceptualny Graf Zapytania <span class="math">\((G,Q)\)</span>, gdzie <span class="math">\(G=(C,R,E,lab,coref)\)</span> oraz <span class="math">\(Q=(q_1,\ldots,q_n)\)</span>. Wówczas opisywany algorytm wykonuje następujące kroki:</p>
+</section>
+<section >
+<p>Dla każdego wierzchołka konceptualnego <span class="math">\(c\in C\)</span> o Konceptualnym Typie Tablicowym <span class="math">\(T_c\)</span>:</p>
+<ul>
+<li>Inicjalizowany jest zbiór <span class="math">\(I_c\)</span> zawierający obiekty z <span class="math">\(I\)</span> o typie <span class="math">\(T_c\)</span>.</li>
+</ul>
+</section>
+<section >
+<p>Dla każdego wierzchołka relacyjnego <span class="math">\(r \in R\)</span> o Relacyjnym Typie Kolumnowym:</p>
+<ul>
+<li>Niech <span class="math">\(c\)</span> oznacza wierzchołek będący argumentem <span class="math">\(r\)</span> o Konceptualnym Typie Tablicowym.</li>
+<li>Ze zbioru <span class="math">\(I_c\)</span> elementów powiązanych z wierzchołkiem <span class="math">\(c\)</span> usuwane są elementy, które nie spełniają relacji opisanej przez <span class="math">\(r\)</span>.</li>
+</ul>
+</section>
+<section >
+<p>Dla każdego wierzchołka relacyjnego <span class="math">\(r\in R\)</span> posiadającego Relacyjny Typ Złączeniowy:</p>
+<ul>
+<li>
+Dla każdego argumentu relacji <span class="math">\(r\)</span> postaci <span class="math">\(c_i\)</span>:
+<ul>
+<li>Zbiór <span class="math">\(I_i\)</span> elementów powiązanych z wierzchołkiem <span class="math">\(c_i\)</span> ograniczany jest wyłącznie do elementów, które spełniają relację <span class="math">\(r\)</span>.</li>
+</ul>
+</li>
+</ul>
+</section>
+<section >
+<p>Dla każdego wierzchołka <span class="math">\(c\in Q\)</span> inicjalizowany jest zbiór <span class="math">\(W_c\)</span> zgodnie z definicją.</p>
+<p>Zwracany jest zbiór Zbiorów Wyników <span class="math">\(W=\{W_i | i\in Q\}\)</span></p>
+</section>
+</section>
+<section >
+<section >
+<h3>Konlator</h3>
+</section>
+<section >
+<p><img src="images/ProgramArch.png" alt="CG" /></p>
+</section>
+<section >
+<p><img src="images/ScreenShot2.png" alt="CG" /></p>
+</section>
+<section >
+<p><img src="images/ScreenShot1.png" alt="CG" /></p>
+</section>
+</section>
+<section >
+<p>Dziękuję za uwagę!</p>
+</section>
+
+
+        </div>
+    </div>
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+        // Add the nohighlight class and data-noescape attribute to code elements that have already been formatted by FSharp.Formatting
+        $('pre.highlighted code').addClass('nohighlight').attr('data-noescape', '');
+
+        // Full list of configuration options available here:
+        // https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            history: true,
+            center: true,
+
+            transition: 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+            // Parallax scrolling
+            // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+            // parallaxBackgroundSize: '2100px 900px',
+
+            // Optional libraries used to extend on reveal.js
+            dependencies: [
+                { src: 'lib/js/classList.js', condition: function () { return !document.body.classList; } },
+                { src: 'plugin/markdown/marked.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+                { src: 'plugin/markdown/markdown.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+                { src: 'plugin/highlight/highlight.js', async: true, callback: function () { hljs.initHighlightingOnLoad(); } },
+                { src: 'plugin/zoom-js/zoom.js', async: true, condition: function () { return !!document.body.classList; } },
+                { src: 'plugin/notes/notes.js', async: true, condition: function () { return !!document.body.classList; } }
+            ]
+        });
+
+    </script>
+</body>
+</html>
+
