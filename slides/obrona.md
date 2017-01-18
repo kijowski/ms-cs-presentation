@@ -79,26 +79,7 @@ Formatem najczęsciej używanym do komunikacji pomiędzy programami wykorzystuj�
 ' _Postać graficzna_ jest formatem najbardziej przyjaznym dla czytelnika. Jednakże, istnieje również kilka zapisów liniowych, które są dużo przyjaźniejsze dla programów komputerowych pracujących z grafami.
 ' W ramach formatu CGIF koncepty ujętę są w nawiasy kwadratowe, natomiast relacje - zwykłe nawiasy. Symbole postaci \*x nazywane są etykietami definiującymi, natomiast symbole postaci ?y - etykietami związanymi. Dzięki temu możliwa jest łatwa prezentacja krawędzi grafu.
 
-
 ---
-### CLIF
-
-Kolejnym z liniowych sposobów zapisu jest **Common Logic Interchange Form**, który został zdefiniowany w ramach tego samego projektu co CGIF.
-
-    (exists ((?x Go) (?y Person) (?z City) (?w Bus))
-            (and (Name ?y John) (Name ?z Boston)
-                 (Agnt ?x ?y) (Dest ?x ?z) (Inst ?x ?w)))
----
-
-### Formuła logiczna
-
-Ważną cechą wszystkich grafów konceptualnych jest ich mocne zakorzenienie w logice predykatów, dzięki czemu graf możemy zapisać w postaci formuły logicznej
-
-$ (\exists x:Go)(\exists y:Person)(\exists z:City)(\exists w:Bus) \\
-   (name(y,\text{'John'}) \wedge name(z,\text{'Boston'}) \wedge \\
-      agnt(x,y) \wedge dest(x,z) \wedge inst(x,w)) $
-
---- 
 
 ### Model grafu konceptualnego
 
@@ -136,7 +117,7 @@ W modelu relacyjnym każda z relacji (prezentowana w postaci np. tabeli) jest re
 
 * **Nazwa** - opisuje danę relację, musi być unikalna w ramach schematu bazy danych.
 * **Nagłówek** - zbiór artybutów opisujących rekordy wchodzące w skład relacji. Pojedynczy atrybut jest parą składającą się z nazwy oraz typu danego atrybutu.
-* **Zawartość** - zbiór krotek, gdzie pojedyncza krotka opisuje zależności pomiędzy danymi powiązanymi z poszczególnymi atrybutami (np. autorem książki o danym tytule jest osoba o podanym imieniu oraz nazwisku).
+* **Zawartość** - zbiór krotek, gdzie pojedyncza krotka opisuje zależności pomiędzy danymi powiązanymi z poszczególnymi atrybutami.
 
 ---
 
@@ -167,90 +148,93 @@ Zarówno model relacyjny jak i grafy konceptualne:
 ' W ramach niniejszej pracy magisterskiej wprowadziłem szereg pojęć rozszerzających teorię grafów konceptualnych. Pojęcia te są bezpośrednio powiązane z modelem relacyjnym, i umożliwiają one łatwiejszy opis opracowanej przeze mnie metody.
 
 --- 
-
-### Konceptualny typ tablicowy
-Przyjmijmy, że $r$ jest instancją schematu relacji $R=\{A_1,\ldots,A_n\}$. Dodatkowo niech $r$ składa się ze skończonego zbioru krotek oznaczonego przez $k$. 
-Wówczas możemy stworzyć **Konceptualny Typ Tablicowy** $T$ o następujących własnościach:
-
-* Typ $T_r$ modeluje ten sam typ obiektów co relacja $r$.
-* Z typem $T_r$ powiązany jest zbiór indywiduów wyznaczony przez zbiór obiektów $k$ tzn. każdy obiekt z $k$ ma typ $T_r$.
+#### Typy Konceptualne
 
 ---
 
-###Konceptualny Nadtyp Tablicowy
-**Konceptualnym Nadtypem Tablicowym** nazywamy specjalny typ wchodzący w skład zbioru typów konceptualnych wyekstrahowanych z danej bazy danych, który posiada następujące właściwości:
+<div class="fragment"><b>Konceptualny Typ Tablicowy</b> <br> modeluje obiekty opisane przez krotki danej relacji</div> <br>
 
-* Dla każdego typu konceptualnego wchodzącego w skład hierarchii konceptów zachodzi następujący warunek - typ konceptualny $T$ jest podtypem Konceptualnego **Nadtypu Tablicowego** wtedy i tylko wtedy, gdy typ $T$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji wchodzącej w skład bazy danych.
+<div class="fragment"><b>Konceptualny Nadtyp Tablicowy</b> <br> wspólny nadtyp typów tablicowych</div><br>
 
----
+<div class="fragment"><b>Konceptualny Typ Liczbowy</b> <br> modeluje literały opisujące liczby</div><br>
 
-###Konceptualny Nadtyp Literałowy
-**Konceptualnym Nadtypem Literałowym** nazywamy specjalny typ $L$ wchodzący w skład zbioru typów konceptualnych wyekstrahowanych z danej bazy danych, który jest nadtypem **Konceptualnego Typu Liczbowego** oraz **Konceptualnego Typu Napisowego**.
+<div class="fragment"><b>Konceptualny Typ Napisowy</b> <br> modeluje literały opisujące napisy</div><br>
+
+<div class="fragment"><b>Konceptualny Nadtyp Literałowy</b> <br> wspólny nadtyp typów literałowych</div>
+
+
+' Przyjmijmy, że $r$ jest instancją schematu relacji $R=\{A_1,\ldots,A_n\}$. Dodatkowo niech $r$ składa się ze skończonego zbioru krotek oznaczonego przez $k$. 
+' Wówczas możemy stworzyć **Konceptualny Typ Tablicowy** $T$ o następujących własnościach:
+' * Typ $T_r$ modeluje ten sam typ obiektów co relacja $r$.
+' * Z typem $T_r$ powiązany jest zbiór indywiduów wyznaczony przez zbiór obiektów $k$ tzn. każdy obiekt z $k$ ma typ $T_r$.
+' **Konceptualnym Nadtypem Tablicowym** nazywamy specjalny typ wchodzący w skład zbioru typów konceptualnych wyekstrahowanych z danej bazy danych, który posiada następujące właściwości:
+' * Dla każdego typu konceptualnego wchodzącego w skład hierarchii konceptów zachodzi następujący warunek - typ konceptualny $T$ jest podtypem Konceptualnego **Nadtypu Tablicowego** wtedy i tylko wtedy, gdy typ $T$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji wchodzącej w skład bazy danych.
+' **Konceptualnym Nadtypem Literałowym** nazywamy specjalny typ $L$ wchodzący w skład zbioru typów konceptualnych wyekstrahowanych z danej bazy danych, który jest nadtypem **Konceptualnego Typu Liczbowego** oraz **Konceptualnego Typu Napisowego**.
 
 ---
 
 ![CG](images/KonceptHierarchyPlain.png)
 
----
 
-###Relacyjny Typ Kolumnowy
-Przyjmijmy, że $r$ jest instancją schematu relacji $R=\{A_1,\ldots,A_n\}$. Dodatkowo niech $r$ składa się ze skończonego zbioru krotek oznaczonego przez $k$.
-Wówczas z relacji $r$ możemy wyekstrahować zbiór Relacyjnych Typów Kolumnowych $T_a = \{t_1,\ldots,t_n\}$ o następujących własnościach:
-
-* Typ relacyjny $t_i$ modeluje $i$-ty atrybut relacji $r$.
-* Typ relacyjny $t_i$ posiada sygnaturę postaci $t_i(K_r,L_i)$ gdzie $K_r$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r$, natomiast $L_i$ jest wyróżnionym typem literałowym  wyznaczonym przez domenę atrybutu $A_i$.
+--- 
+#### Typy Relacyjne
 
 ---
 
-###Relacyjny Nadtyp Kolumnowo-Tablicowy
-Relacyjnym Nadtypem Kolumnowo-Tablicowym powiązanym z relacją $r$ nazywamy specjalny typ relacyjny $RNK_r$ o sygnaturze $RNK_r(K_r,L)$ o następujących własnościach:
 
-* $K_r$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r$.
-* $L$ jest Konceptualnym Nadtypem Literałowym.
-* Każdy Relacyjny Typ Kolumnowy $R_i$ wyekstrahowany z relacji $r$ jest podtypem typu $RNK_r$.
+<div class="fragment"><b>Relacyjny Typ Kolumnowy</b> <br> modeluje związek krotki z wartością danego atrybutu</div> <br>
 
----
+<div class="fragment"><b>Relacyjny Nadtyp Kolumnowo-Tablicowy</b> <br> wspólny nadtyp typów kolumnowych danej relacji</div><br>
 
-###Relacyjny Nadtyp Kolumnowy
-Relacyjnym Nadtypem Kolumnowym nazywamy specjalny typ relacyjny $RNK$ o sygnaturze $RNK(K,L)$ o następujących własnościach
+<div class="fragment"><b>Relacyjny Nadtyp Kolumnowy</b> <br> wspólny nadtyp nadtypów kolumnowo-tablicowych</div><br>
 
-* $K$ jest Konceptualnym Nadtypem Tablicowym.
-* $L$ jest Konceptualnym Nadtypem Literałowym.
-* Każdy Relacyjny Nadtyp Kolumnowo-Tablicowy $RNK_r$ jest podtypem typu $RNK_r$.
+<div class="fragment"><b>Relacyjny Prosty Typ Złączeniowy</b> <br> modeluje związek opisany przez złączenie dwóch tabel</div><br>
 
----
+<div class="fragment"><b>Relacyjny Złożony Typ Złączeniowy</b> <br> modeluje związek opisany przez złączenie wielu tabel</div>
 
-###Relacyjny Prosty Typ Złączeniowy
-Przyjmijmy, że $r$ jest instancją schematu relacji $R=\{A_1,\ldots,A_n\}$ oraz $s$ jest instancją schematu relacji $S=\{B_1,\ldots,B_m\}$. Dodatkowo niech $fk=(C_1,\ldots,C_i)$ będzie kluczem obcym łączącym $R$ oraz $S$ tzn. $\forall_{j:1\leq j \leq i} \exists_{l:1\leq l\leq n} A_l=C_j $ oraz $\forall_{j: 1\leq j \leq i} \exists_{l: 1\leq l\leq m} B_l=C_j $.
-Wówczas Relacyjnym Prostym Typem Złączeniowym $T$ nazywamy typ relacyjny o następujących własnościach:
 
----
+' ###Relacyjny Typ Kolumnowy
+' Przyjmijmy, że $r$ jest instancją schematu relacji $R=\{A_1,\ldots,A_n\}$. Dodatkowo niech $r$ składa się ze skończonego zbioru krotek oznaczonego przez $k$.
+' Wówczas z relacji $r$ możemy wyekstrahować zbiór Relacyjnych Typów Kolumnowych $T_a = \{t_1,\ldots,t_n\}$ o następujących własnościach:
 
-Typ relacyjny $T$ modeluje obiekty należące do $r$ oraz $s$ będące w relacji $fk$.
+' * Typ relacyjny $t_i$ modeluje $i$-ty atrybut relacji $r$.
+' * Typ relacyjny $t_i$ posiada sygnaturę postaci $t_i(K_r,L_i)$ gdzie $K_r$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r$, natomiast $L_i$ jest wyróżnionym typem literałowym  wyznaczonym przez domenę atrybutu $A_i$.
 
----
+' ###Relacyjny Nadtyp Kolumnowo-Tablicowy
+' Relacyjnym Nadtypem Kolumnowo-Tablicowym powiązanym z relacją $r$ nazywamy specjalny typ relacyjny $RNK_r$ o sygnaturze $RNK_r(K_r,L)$ o następujących własnościach:
 
-Typ relacyjny $T$ posiada sygnaturę postaci $T(K_r,K_s)$ gdzie $K_r$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r$, natomiast $K_s$ jest konceptualnym typem tablicowym wyekstrahowanym z relacji $s$.
+' * $K_r$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r$.
+' * $L$ jest Konceptualnym Nadtypem Literałowym.
+' * Każdy Relacyjny Typ Kolumnowy $R_i$ wyekstrahowany z relacji $r$ jest podtypem typu $RNK_r$.
 
----
+' ###Relacyjny Nadtyp Kolumnowy
+' Relacyjnym Nadtypem Kolumnowym nazywamy specjalny typ relacyjny $RNK$ o sygnaturze $RNK(K,L)$ o następujących własnościach
 
-###Relacyjny Złożony Typ Złączeniowy
+' * $K$ jest Konceptualnym Nadtypem Tablicowym.
+' * $L$ jest Konceptualnym Nadtypem Literałowym.
+' * Każdy Relacyjny Nadtyp Kolumnowo-Tablicowy $RNK_r$ jest podtypem typu $RNK_r$.
 
-Przyjmijmy, że $R=\{r_1\ldots r_i\}$ jest zbiorem instancji schematów relacji $T_R=\{R_1\ldots R_i\}$, oraz $FK=\{fk_1\ldots fk_{i-1}\}$ jest zbiorem relacyjnych typów złączeniowych gdzie $\forall k fk_k=(r_k, r_{k+1})$, czyli $fk_k$ odpowiada złączeniu relacji $r_k$ oraz $r_{k+1}$.
+' ###Relacyjny Prosty Typ Złączeniowy
+' Przyjmijmy, że $r$ jest instancją schematu relacji $R=\{A_1,\ldots,A_n\}$ oraz $s$ jest instancją schematu relacji $S=\{B_1,\ldots,B_m\}$. Dodatkowo niech $fk=(C_1,\ldots,C_i)$ będzie kluczem obcym łączącym $R$ oraz $S$ tzn. $\forall_{j:1\leq j \leq i} \exists_{l:1\leq l\leq n} A_l=C_j $ oraz $\forall_{j: 1\leq j \leq i} \exists_{l: 1\leq l\leq m} B_l=C_j $.
+' Wówczas Relacyjnym Prostym Typem Złączeniowym $T$ nazywamy typ relacyjny o następujących własnościach:
 
-Możemy wówczas wyróżnić zbiór $X=\{x_1,\ldots,x_i\}$ gdzie $x_j$ jest przecięciem obiektów należących do $r_j$ będących jednocześnie w relacji $fk_j$ oraz $fk_{j+1}$.
+' Typ relacyjny $T$ modeluje obiekty należące do $r$ oraz $s$ będące w relacji $fk$.
 
-Wówczas dla każdego podziału ciągu $(1,\ldots,i)$ na trzy podciągi $(1,\ldots,a),(a+1,\ldots,b),(b+1,\ldots,i)$, takiego że $1\leq a\leq b\leq i-1$ możemy zdefiniować Złożony Typ Złączeniowy $Z$ o następujących własnościach:
+' Typ relacyjny $T$ posiada sygnaturę postaci $T(K_r,K_s)$ gdzie $K_r$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r$, natomiast $K_s$ jest konceptualnym typem tablicowym wyekstrahowanym z relacji $s$.
 
----
+' ###Relacyjny Złożony Typ Złączeniowy
 
-Typ relacyjny $Z$ modeluje obiekty należące do $\{x_1,\ldots,x_a,x_{b+1},\ldots,x_i\}$.
+' Przyjmijmy, że $R=\{r_1\ldots r_i\}$ jest zbiorem instancji schematów relacji $T_R=\{R_1\ldots R_i\}$, oraz $FK=\{fk_1\ldots fk_{i-1}\}$ jest zbiorem relacyjnych typów złączeniowych gdzie $\forall k fk_k=(r_k, r_{k+1})$, czyli $fk_k$ odpowiada złączeniu relacji $r_k$ oraz $r_{k+1}$.
 
----
-Typ relacyjny $Z$ posiada sygnaturę postaci $T(K_1,\ldots,K_a,K_{b+1},\ldots,K_i)$ gdzie $K_i$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r_i$
+' Możemy wówczas wyróżnić zbiór $X=\{x_1,\ldots,x_i\}$ gdzie $x_j$ jest przecięciem obiektów należących do $r_j$ będących jednocześnie w relacji $fk_j$ oraz $fk_{j+1}$.
 
----
-Z typem relacyjnym $Z$ związany jest zbiór argumentów ukrytych postaci $(K_{a+1},\ldots,K_{b})$ gdzie $K_i$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r_i$
+' Wówczas dla każdego podziału ciągu $(1,\ldots,i)$ na trzy podciągi $(1,\ldots,a),(a+1,\ldots,b),(b+1,\ldots,i)$, takiego że $1\leq a\leq b\leq i-1$ możemy zdefiniować Złożony Typ Złączeniowy $Z$ o następujących własnościach:
+
+' Typ relacyjny $Z$ modeluje obiekty należące do $\{x_1,\ldots,x_a,x_{b+1},\ldots,x_i\}$.
+
+' Typ relacyjny $Z$ posiada sygnaturę postaci $T(K_1,\ldots,K_a,K_{b+1},\ldots,K_i)$ gdzie $K_i$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r_i$
+
+' Z typem relacyjnym $Z$ związany jest zbiór argumentów ukrytych postaci $(K_{a+1},\ldots,K_{b})$ gdzie $K_i$ jest Konceptualnym Typem Tablicowym wyekstrahowanym z relacji $r_i$
 
 ---
 
@@ -318,17 +302,12 @@ Przed przystąpieniem do definicji **Konceptualnego Grafu Zapytania** należy zr
 ### Konceptualny Graf Zapytania
 Konceptualnym Grafem Zapytania nazywamy krotkę postaci $(G,Q)$, gdzie $G$ jest grafem konceptualnym, natomiast $Q$ jest zbiorem złożonym z wyróżnionych wierzchołków konceptualnych oraz relacyjnych należących do $G$.
 
+' ### Zbiór wyników
+' Niech $(G,Q)$ będzie Konceptualnym Grafem Zapytania opartym o model $M=((C,\leq_C),(R,\leq_R),I)$ wyekstrahowanym z relacyjnej bazy danych. Wówczas dla każdego $q \in Q$ **Zbiorem Wyników** $R_q$ nazywamy zbiór elementów z $I$ spełniających jeden z następujących warunków:
 
----
-### Zbiór wyników
-Niech $(G,Q)$ będzie Konceptualnym Grafem Zapytania opartym o model $M=((C,\leq_C),(R,\leq_R),I)$ wyekstrahowanym z relacyjnej bazy danych. Wówczas dla każdego $q \in Q$ **Zbiorem Wyników** $R_q$ nazywamy zbiór elementów z $I$ spełniających jeden z następujących warunków:
+' Jeśli $q$ jest wierzchołkiem konceptualnym o typie $T_q\in C$, to wówczas $R_q$ składa się z obiektów typu $T_q$, które są zgodne z grafem $G$ tzn. spełniają wszystkie relacje opisane przez $G$.
 
----
-
-Jeśli $q$ jest wierzchołkiem konceptualnym o typie $T_q\in C$, to wówczas $R_q$ składa się z obiektów typu $T_q$, które są zgodne z grafem $G$ tzn. spełniają wszystkie relacje opisane przez $G$.
-
----
-Jeśli $q$ jest wierzchołkiem relacyjnym o typie z sygnaturą $T_q(A_1,\ldots,A_n)\in R$ to wówczas $R_q$ składa się z obiektów typu koniunkcyjnego $T_q=A_1\wedge \ldots \wedge A_n$. Obiekty należące do $R_q$ są zgodne z grafem $G$ tzn. spełniają wszystkie relacje opisane przez $G$.
+' Jeśli $q$ jest wierzchołkiem relacyjnym o typie z sygnaturą $T_q(A_1,\ldots,A_n)\in R$ to wówczas $R_q$ składa się z obiektów typu koniunkcyjnego $T_q=A_1\wedge \ldots \wedge A_n$. Obiekty należące do $R_q$ są zgodne z grafem $G$ tzn. spełniają wszystkie relacje opisane przez $G$.
 
 ---
 
@@ -408,6 +387,13 @@ Zwracany jest zbiór Zbiorów Wyników $W=\{W_i | i\in Q\}$
 ---
 
 ![CG](images/ProgramArch.png)
+
+---
+![CG](images/ScreenShot2.png)
+
+---
+![CG](images/ScreenShot1.png)
+
 
 ***
 
